@@ -61,17 +61,14 @@
 
     scene.add(markerRoot);
 
+
     const hanabi_geometry = new THREE.SphereGeometry(0.1, 64, 32);
     const hanabi_material = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 1.0 });
     const hanabi = new THREE.Mesh(hanabi_geometry, hanabi_material);
     hanabi.position.set(0, 0, 10);
     markerRoot.add(hanabi);
-    
-
-
 
     function animate() {
-      const rina = 0.005;
       requestAnimationFrame(animate);
       if (hanabi.position.z >= 2) {
         hanabi.position.z -= 0.1;
@@ -243,11 +240,9 @@
         markerRoot.add(hanabiorange12);
         const rei = new THREE.Mesh(hanabi1_geometry, hanabired_material);
         markerRoot.add(rei);
-        hanabired_material.opacity += rina;
-        hanabiorange_material.opacity += rina;
-        if(hanabired_material.opcity > 1.0){
-          rina = -0.005;
-        }
+        hanabired_material.opacity += 0.005;
+        hanabiorange_material.opacity += 0.005;
+
       }
 
 
