@@ -1,0 +1,284 @@
+<html>
+
+<head>
+  <title>three.js + ar.js</title>
+  <meta name="viewport" content="width=device-width, viewport-fit=cover, shrink-to-fit=no" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    .wrapper {
+      position: relative;
+      overflow: hidden;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrapper">
+    <canvas></canvas>
+  </div>
+  <!--❶ three.jsとAR.jsを読み込む-->
+  <script src="https://unpkg.com/three@0.127.0/build/three.min.js"></script>
+  <script src="https://raw.githack.com/AR-js-org/AR.js/3.3.3/three.js/build/ar.js"></script>
+  <script async>
+    const renderer = new THREE.WebGLRenderer({
+      canvas: document.querySelector('canvas'),
+      antialias: true,
+      alpha: true
+    });
+    const camera = new THREE.PerspectiveCamera();
+    const scene = new THREE.Scene();
+    const markerRoot = new THREE.Group();
+    const arToolkitContext = new THREEx.ArToolkitContext({
+      cameraParametersUrl: './camera.dat', // ❷ camera.datを読み込む
+      detectionMode: 'mono'
+    });
+    const arToolkitSource = new THREEx.ArToolkitSource({
+      sourceType: 'webcam'
+    });
+    const arMarkerControl = new THREEx.ArMarkerControls(arToolkitContext, markerRoot, {
+      type: 'pattern',
+      patternUrl: 'pattern.patt' // ❸ pattern.pattを読み込む
+    });
+
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    window.addEventListener('resize', handleResize, {
+      passive: true
+    });
+
+    arToolkitContext.init(() => {
+      camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
+    });
+
+    arToolkitSource.init(() => {
+      document.querySelector('.wrapper').appendChild(arToolkitSource.domElement); // ❹ videoタグを.wrapper配下に移動させる
+      setTimeout(handleResize, 400); // ❺ リサイズイベントを一度発火させる
+    });
+
+    scene.add(markerRoot);
+
+    const hanabi_geometry = new THREE.SphereGeometry(0.1, 64, 32);
+    const hanabi_material = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 1.0 });
+    const hanabi = new THREE.Mesh(hanabi_geometry, hanabi_material);
+    hanabi.position.set(0, 0, 10);
+    markerRoot.add(hanabi);
+
+
+
+    function animate() {
+      requestAnimationFrame(animate);
+      if (hanabi.position.z >= 2) {
+        hanabi.position.z -= 0.1;
+      }
+      if (hanabi.position.z < 2 && hanabi.position.z >= 1) {
+        hanabi.position.z -= 0.005 * 2;
+        hanabi_material.opacity -= 0.001;
+      }
+      if (hanabi.position.z < 1 && hanabi.position.z >= 0.5) {
+        hanabi.position.z -= 0.0025 * 2;
+        hanabi_material.opacity -= 0.001;
+      }
+      if (hanabi.position.z < 0.5 && hanabi.position.z >= 0.025) {
+        hanabi.position.z -= 0.00125 * 2;
+        hanabi_material.opacity -= 0.01;
+      }
+      if (hanabi.position.z < 0.025 && hanabi.position.z > 0) {
+        hanabi.position.z -= 0.000625 * 2;
+        hanabi_material.opacity -= 0.01;
+      }
+      if (hanabi.position.z <= 0) {
+        const hanabi1_geometry = new THREE.SphereGeometry(0.1, 64, 32);
+        const hanabired_material = new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0.0 });
+        const hanabired1 = new THREE.Mesh(hanabi1_geometry, hanabired_material);
+        hanabired1.position.set(0.5, 0, 0);
+        hanabired1.scale.x -= 0.25;
+        hanabired1.scale.y += 2;
+        hanabired1.rotation.z += Math.PI / 2;
+        hanabired1.rotation.x += Math.PI / 2;
+
+        markerRoot.add(hanabired1);
+        const hanabired2 = new THREE.Mesh(hanabi1_geometry, hanabired_material);
+        hanabired2.position.set(0.5 * Math.cos(Math.PI / 12) - 0.05, 0.5 * Math.sin(Math.PI / 12) + 0.12, 0);
+        hanabired2.scale.x -= 0.25;
+        hanabired2.scale.y += 2;
+        hanabired2.rotation.z -= Math.PI / 3;
+        markerRoot.add(hanabired2);
+        const hanabired3 = new THREE.Mesh(hanabi1_geometry, hanabired_material);
+        hanabired3.position.set(0.5 * Math.sin(Math.PI / 12) + 0.1, 0.5 * Math.cos(Math.PI / 12) - 0.05, 0);
+        hanabired3.scale.x -= 0.25;
+        hanabired3.scale.y += 2;
+        hanabired3.rotation.z -= Math.PI / 6;
+        markerRoot.add(hanabired3);
+        const hanabired4 = new THREE.Mesh(hanabi1_geometry, hanabired_material);
+        hanabired4.position.set(0, 0.5, 0);
+        hanabired4.scale.x -= 0.25;
+        hanabired4.scale.y += 2;
+        markerRoot.add(hanabired4);
+        const hanabired5 = new THREE.Mesh(hanabi1_geometry, hanabired_material);
+        hanabired5.position.set(-0.5 * Math.sin(Math.PI / 12) - 0.1, 0.5 * Math.cos(Math.PI / 12) - 0.05, 0);
+        hanabired5.scale.x -= 0.25;
+        hanabired5.scale.y += 2;
+        hanabired5.rotation.z += Math.PI / 6;
+        markerRoot.add(hanabired5);
+        const hanabired6 = new THREE.Mesh(hanabi1_geometry, hanabired_material);
+        hanabired6.position.set(-0.5 * Math.cos(Math.PI / 12) + 0.05, 0.5 * Math.sin(Math.PI / 12) + 0.12, 0);
+        hanabired6.scale.x -= 0.25;
+        hanabired6.scale.y += 2;
+        hanabired6.rotation.z += Math.PI / 3;
+        markerRoot.add(hanabired6);
+        const hanabired7 = new THREE.Mesh(hanabi1_geometry, hanabired_material);
+        hanabired7.position.set(-0.5, 0, 0);
+        hanabired7.scale.x -= 0.25;
+        hanabired7.scale.y += 2;
+        hanabired7.rotation.z += Math.PI / 2;
+        markerRoot.add(hanabired7);
+        const hanabired8 = new THREE.Mesh(hanabi1_geometry, hanabired_material);
+        hanabired8.position.set(-0.5 * Math.cos(Math.PI / 12) + 0.05, - 0.5 * Math.sin(Math.PI / 12) - 0.12, 0);
+        hanabired8.scale.x -= 0.25;
+        hanabired8.scale.y += 2;
+        hanabired8.rotation.z -= Math.PI / 3;
+        markerRoot.add(hanabired8);
+        const hanabired9 = new THREE.Mesh(hanabi1_geometry, hanabired_material);
+        hanabired9.position.set(-0.5 * Math.sin(Math.PI / 12) - 0.1, -0.5 * Math.cos(Math.PI / 12) + 0.05, 0);
+        hanabired9.scale.x -= 0.25;
+        hanabired9.scale.y += 2;
+        hanabired9.rotation.z -= Math.PI / 6;
+        markerRoot.add(hanabired9);
+        const hanabired10 = new THREE.Mesh(hanabi1_geometry, hanabired_material);
+        hanabired10.position.set(0, -0.5, 0);
+        hanabired10.scale.x -= 0.25;
+        hanabired10.scale.y += 2;
+        markerRoot.add(hanabired10);
+        const hanabired11 = new THREE.Mesh(hanabi1_geometry, hanabired_material);
+        hanabired11.position.set(0.5 * Math.sin(Math.PI / 12) + 0.1, -0.5 * Math.cos(Math.PI / 12) + 0.05, 0);
+        hanabired11.scale.x -= 0.25;
+        hanabired11.scale.y += 2;
+        hanabired11.rotation.z += Math.PI / 6;
+        markerRoot.add(hanabired11);
+        const hanabired12 = new THREE.Mesh(hanabi1_geometry, hanabired_material);
+        hanabired12.position.set(0.5 * Math.cos(Math.PI / 12) - 0.05, - 0.5 * Math.sin(Math.PI / 12) - 0.12, 0);
+        hanabired12.scale.x -= 0.25;
+        hanabired12.scale.y += 2;
+        hanabired12.rotation.z += Math.PI / 3;
+        markerRoot.add(hanabired12);
+
+        const hanabiorange_material = new THREE.MeshBasicMaterial({ color: 0xffff00, transparent: true, opacity: 0.0 });
+        const hanabiorange1 = new THREE.Mesh(hanabi1_geometry, hanabiorange_material);
+        hanabiorange1.position.set(0.9 * Math.cos(Math.PI / 12), -0.9 * Math.sin(Math.PI / 12), 0);
+        hanabiorange1.scale.x -= 0.15;
+        hanabiorange1.scale.y += 2;
+        hanabiorange1.rotation.z += Math.PI / 2.5;
+        markerRoot.add(hanabiorange1);
+        const hanabiorange2 = new THREE.Mesh(hanabi1_geometry, hanabiorange_material);
+        hanabiorange2.position.set(0.9 * Math.cos(Math.PI / 12), 0.9 * Math.sin(Math.PI / 12), 0);
+        hanabiorange2.scale.x -= 0.15;
+        hanabiorange2.scale.y += 2;
+        hanabiorange2.rotation.z -= Math.PI / 2.5;
+        markerRoot.add(hanabiorange2);
+        const hanabiorange3 = new THREE.Mesh(hanabi1_geometry, hanabiorange_material);
+        hanabiorange3.position.set(0.9 * Math.cos(Math.PI / 4), 0.9 * Math.sin(Math.PI / 4), 0);
+        hanabiorange3.scale.x -= 0.15;
+        hanabiorange3.scale.y += 2;
+        hanabiorange3.rotation.z -= Math.PI / 4;
+        markerRoot.add(hanabiorange3);
+        const hanabiorange4 = new THREE.Mesh(hanabi1_geometry, hanabiorange_material);
+        hanabiorange4.position.set(0.9 * Math.sin(Math.PI / 12), 0.9 * Math.cos(Math.PI / 12), 0);
+        hanabiorange4.scale.x -= 0.15;
+        hanabiorange4.scale.y += 2;
+        hanabiorange4.rotation.z -= Math.PI / 10;
+        markerRoot.add(hanabiorange4);
+        const hanabiorange5 = new THREE.Mesh(hanabi1_geometry, hanabiorange_material);
+        hanabiorange5.position.set(-0.9 * Math.sin(Math.PI / 12), 0.9 * Math.cos(Math.PI / 12), 0);
+        hanabiorange5.scale.x -= 0.15;
+        hanabiorange5.scale.y += 2;
+        hanabiorange5.rotation.z += Math.PI / 10;
+        markerRoot.add(hanabiorange5);
+        const hanabiorange6 = new THREE.Mesh(hanabi1_geometry, hanabiorange_material);
+        hanabiorange6.position.set(-0.9 * Math.cos(Math.PI / 4), 0.9 * Math.sin(Math.PI / 4), 0);
+        hanabiorange6.scale.x -= 0.15;
+        hanabiorange6.scale.y += 2;
+        hanabiorange6.rotation.z += Math.PI / 4;
+        markerRoot.add(hanabiorange6);
+        const hanabiorange7 = new THREE.Mesh(hanabi1_geometry, hanabiorange_material);
+        hanabiorange7.position.set(-0.9 * Math.cos(Math.PI / 12), 0.9 * Math.sin(Math.PI / 12), 0);
+        hanabiorange7.scale.x -= 0.15;
+        hanabiorange7.scale.y += 2;
+        hanabiorange7.rotation.z += Math.PI / 2.5;
+        markerRoot.add(hanabiorange7);
+        const hanabiorange8 = new THREE.Mesh(hanabi1_geometry, hanabiorange_material);
+        hanabiorange8.position.set(-0.9 * Math.cos(Math.PI / 12), -0.9 * Math.sin(Math.PI / 12), 0);
+        hanabiorange8.scale.x -= 0.15;
+        hanabiorange8.scale.y += 2;
+        hanabiorange8.rotation.z -= Math.PI / 2.5;
+        markerRoot.add(hanabiorange8);
+        const hanabiorange9 = new THREE.Mesh(hanabi1_geometry, hanabiorange_material);
+        hanabiorange9.position.set(-0.9 * Math.cos(Math.PI / 4), -0.9 * Math.sin(Math.PI / 4), 0);
+        hanabiorange9.scale.x -= 0.15;
+        hanabiorange9.scale.y += 2;
+        hanabiorange9.rotation.z -= Math.PI / 4;
+        markerRoot.add(hanabiorange9);
+        const hanabiorange10 = new THREE.Mesh(hanabi1_geometry, hanabiorange_material);
+        hanabiorange10.position.set(-0.9 * Math.sin(Math.PI / 12), -0.9 * Math.cos(Math.PI / 12), 0);
+        hanabiorange10.scale.x -= 0.15;
+        hanabiorange10.scale.y += 2;
+        hanabiorange10.rotation.z -= Math.PI / 10;
+        markerRoot.add(hanabiorange10);
+        const hanabiorange11 = new THREE.Mesh(hanabi1_geometry, hanabiorange_material);
+        hanabiorange11.position.set(0.9 * Math.sin(Math.PI / 12), -0.9 * Math.cos(Math.PI / 12), 0);
+        hanabiorange11.scale.x -= 0.15;
+        hanabiorange11.scale.y += 2;
+        hanabiorange11.rotation.z += Math.PI / 10;
+        markerRoot.add(hanabiorange11);
+        const hanabiorange12 = new THREE.Mesh(hanabi1_geometry, hanabiorange_material);
+        hanabiorange12.position.set(0.9 * Math.cos(Math.PI / 4), -0.9 * Math.sin(Math.PI / 4), 0);
+        hanabiorange12.scale.x -= 0.15;
+        hanabiorange12.scale.y += 2;
+        hanabiorange12.rotation.z += Math.PI / 4;
+        markerRoot.add(hanabiorange12);
+        const rei = new THREE.Mesh(hanabi1_geometry, hanabired_material);
+        markerRoot.add(rei);
+        hanabired_material.opacity += 0.005;
+        hanabiorange_material.opacity += 0.005;
+
+      }
+
+
+
+
+    }
+    animate();
+
+    // var delta = -0.01;
+    // setInterval(function () {
+    //   if (material.opacity < 0.0) {
+    //     delta = 0.01;
+    //   } else if (material.opacity > 1.0) {
+    //     delta = -0.01;
+    //   }
+    //   material.opacity += delta;
+    // }, 10);
+
+    renderer.setAnimationLoop((delta) => {
+      if (arToolkitSource.ready) {
+        arToolkitContext.update(arToolkitSource.domElement);
+      }
+
+      renderer.render(scene, camera);
+    });
+
+    function handleResize() {
+      if (arToolkitSource.ready) {
+        arToolkitSource.onResize();
+        arToolkitSource.copySizeTo(renderer.domElement);
+      }
+
+      renderer.setPixelRatio(window.devicePixelRatio);
+    }
+  </script>
+</body>
+
+</html>
